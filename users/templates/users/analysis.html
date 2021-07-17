@@ -1,0 +1,20 @@
+{% extends "users/base.html" %} {% block content %}
+<script src="..\..\static\users\analysis.js"></script>
+<script src="..\..\static\users\stocks.js"></script>
+
+<h2>Analysis Page</h2>
+<table>
+	<tr class="header">
+		<th>Ticker</th>
+		<th>Quantity</th>
+	</tr>
+	{% for ticker, quantity in portfolio.items %}
+	<tr>
+		<td>{{ticker}}</td>
+		<td>{{quantity}}</td>
+	</tr>
+	{% endfor %}
+</table>
+
+<canvas id="performance" width="320" height="180"></canvas>
+{% endblock content %}

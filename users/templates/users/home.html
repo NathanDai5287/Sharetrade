@@ -1,0 +1,29 @@
+{% extends "users/base.html" %}
+{% block content %}
+	<form method="POST">
+		{% csrf_token %}
+		<table id="portfolio" class="portfolio" onkeydown=last(event)>
+			<tr class="header">
+				<th>Ticker</th>
+				<th>Quantity</th>
+			</tr>
+
+			<!-- <tr class="stock">
+				<td>
+					<input name="ticker_0" class="ticker" type="text" onkeyup="caps(this)" maxlength="5">
+				</td>
+				<td>
+					<input name="quantity_0" class="quantity" type="number" onkeyup="check(this)" onclick="check(this)">
+				</td>
+				<td>
+					<button class="trash" onclick="trash(this.parentNode)" tabindex="-1">X</button>
+				</td>
+			</tr> -->
+
+		</table>
+		<button class="button submit">Submit</button>
+	</form>
+	<button onclick=row() class="button add">New Row</button>
+
+{% endblock content %}
+0
