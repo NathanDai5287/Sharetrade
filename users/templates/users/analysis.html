@@ -3,15 +3,15 @@
 <script src="..\..\static\users\stocks.js"></script>
 
 <h2>Analysis Page</h2>
-<table>
+<table id="portfolio" class="portfolio">
 	<tr class="header">
 		<th>Ticker</th>
 		<th>Quantity</th>
 	</tr>
 	{% for ticker, quantity in portfolio.items %}
-	<tr>
-		<td>{{ticker}}</td>
-		<td>{{quantity}}</td>
+	<tr class="stock">
+		<td class="ticker">{{ticker}}</td>
+		<td class="quantity">{{quantity}}</td>
 	</tr>
 	{% endfor %}
 </table>

@@ -1,49 +1,65 @@
-function format_date(date) {
-
-}
-
-async function get_data(ticker) {
+async function draw(tickers, quantities) {
 	var stocks = new Stocks('84W5MVCJ60YFQFI5');
 
-	var options = {
-		symbol: ticker,
-		interval: 'monthly',
-		amount: 12,
-	};
-
-	var result = await stocks.timeSeries(options);
-
-	result = result.map(function (data) {
-		return {
-			date: data.date.getMonth() + "/" + (data.date.getYear() - 100),
-			open: data.open,
-		};
-	});
-
-	result.reverse();
-
-	console.log(toString(result[0]['date']));
-
-	return result;
-}
-
-async function draw(ticker) {
 	var ctx = document.getElementById('performance').getContext('2d');
 
-	await get_data(ticker).then((result) => {
-		data = result;
-	});
-	console.log(data);
+	var data = {};
 
-	var dates = data.map(function (datapoint) {
-		return datapoint.date;
-	});
+	for (let ticker of tickers) {
+		let options = {
+			symbol: ticker,
+			interval: 'monthly',
+			amount: 12,
+		};
 
-	var prices = data.map(function (datapoint) {
-		return datapoint.open;
-	});
+		var result;
+		await stocks.timeSeries(options).then((temp) => {
+			result = temp.map(function (data) {
+				return {
+					date: data.date,
+					open: data.open,
+				};
+			});
 
-	var myChart = new Chart(ctx, {
+			result.reverse()
+		});
+
+		stock = result;
+		data[ticker] = stock;
+	}
+
+	var all = data;
+	var portfolio = {};
+
+	for (let i = 0; i < all[tickers[0]].length; i++) {
+		date = data[tickers[0]][i]['date'];
+		portfolio[date] = 0;
+
+		for (let ticker of tickers) {
+			try {
+				portfolio[date] += data[ticker][i]['open'] * quantities[ticker];
+			} catch (error) {
+				console.log(error);
+				console.log(ticker);
+				console.log(data[ticker][i]);
+			}
+		}
+	}
+
+	var first = Object.keys(portfolio)[0];
+	var price = portfolio[first];
+
+	const scale = 100 / price;
+
+	var dates = []; var prices = [];
+	for (let [date, price] of Object.entries(portfolio)) {
+		dateobject = new Date(date);
+		dates.push(dateobject.getMonth() + '/' + dateobject.getDate() + '/' + dateobject.getFullYear());
+		prices.push(Math.round(price * scale * 100) / 100);
+		// prices.push(Math.round(price));
+	}
+
+	var chart = new Chart(ctx, {
 		type: 'line',
 		data: {
 			labels: dates,
@@ -76,9 +92,29 @@ async function draw(ticker) {
 				}
 			}
 		}
+
 	});
 }
 
-window.onload = function() {
-	draw('tsla');
+function get_portfolio() {
+	portfolio = {}
+
+	var stocks = document.getElementsByClassName('stock');
+
+	var ticker, quantity;
+	for (let stock of stocks) {
+		ticker = stock.children[0];
+		quantity = stock.children[1];
+
+		portfolio[ticker.innerText] = quantity.innerText;
+	}
+
+	return portfolio
+}
+
+window.onload = function () { // TODO: cache data in client browser
+	var portfolio = get_portfolio();
+	var tickers = Object.keys(portfolio);
+
+	draw(tickers, portfolio);
 };
