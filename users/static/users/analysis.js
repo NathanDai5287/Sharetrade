@@ -1,63 +1,75 @@
-async function draw(tickers, quantities) {
-	var stocks = new Stocks('84W5MVCJ60YFQFI5');
+async function get_data(ticker) {
+	var url = 'https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY_ADJUSTED&symbol=' + ticker + '&apikey=84W5MVCJ60YFQFI5';
 
-	var ctx = document.getElementById('performance').getContext('2d');
+	var response = await fetch(url);
+	var data = await response.json();
 
+	data = data['Monthly Adjusted Time Series'];
+
+	var trimmed = {};
+	let i = 0;
+	for (let [date, value] of Object.entries(data)) {
+		if (i++ == 12) {
+			break;
+		}
+
+		trimmed[date] = Number(value['5. adjusted close']);
+	}
+
+	return trimmed;
+}
+
+async function all_data(tickers) {
+	var stock;
 	var data = {};
 
 	for (let ticker of tickers) {
-		let options = {
-			symbol: ticker,
-			interval: 'monthly',
-			amount: 12,
-		};
+		stock = await get_data(ticker);
 
-		var result;
-		await stocks.timeSeries(options).then((temp) => {
-			result = temp.map(function (data) {
-				return {
-					date: data.date,
-					open: data.open,
-				};
-			});
-
-			result.reverse()
-		});
-
-		stock = result;
 		data[ticker] = stock;
 	}
 
-	var all = data;
+	return data;
+}
+
+async function average(tickers, quantities) {
+	var data = await all_data(tickers);
+
 	var portfolio = {};
 
-	for (let i = 0; i < all[tickers[0]].length; i++) {
-		date = data[tickers[0]][i]['date'];
+	var dates = Object.keys(data[tickers[0]]);
+	var date;
+	for (let i = 0; i < dates.length; i++) {
+		date = dates[i];
 		portfolio[date] = 0;
 
 		for (let ticker of tickers) {
-			try {
-				portfolio[date] += data[ticker][i]['open'] * quantities[ticker];
-			} catch (error) {
-				console.log(error);
-				console.log(ticker);
-				console.log(data[ticker][i]);
-			}
+			portfolio[date] += data[ticker][date] * quantities[ticker];
 		}
 	}
 
-	var first = Object.keys(portfolio)[0];
-	var price = portfolio[first];
+	return portfolio;
+}
+
+async function draw(tickers, quantities) {
+	var ctx = document.getElementById('performance').getContext('2d');
+
+	var portfolio = await average(tickers, quantities);
+
+	var last = Object.keys(portfolio)[Object.keys(portfolio).length - 1];
+	var price = portfolio[last];
 
 	const scale = 100 / price;
 
 	var dates = []; var prices = [];
 	for (let [date, price] of Object.entries(portfolio)) {
-		dateobject = new Date(date);
+		var dateobject = new Date(date);
 		dates.push(dateobject.getMonth() + '/' + dateobject.getDate() + '/' + dateobject.getFullYear());
+
 		prices.push(Math.round(price * scale * 100) / 100);
-		// prices.push(Math.round(price));
 	}
+
+	prices.reverse();
 
 	var chart = new Chart(ctx, {
 		type: 'line',
