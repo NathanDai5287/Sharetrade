@@ -1,19 +1,49 @@
+apikeys = [
+	'84W5MVCJ60YFQFI5',
+	'77R1IJ6QVWT53UMJ',
+	'RR8JGJ1SMXNKJKK5',
+	'9P9IEIGNGDIDMPAF',
+	'BALZ7BMX4ODUWEV4',
+	'M8YMBC9P4HX8ZAIU',
+	'OD0AUY7SYVOUX97I',
+	'YMWSGWB5IR803PJE',
+	'RGYZNMGNB1K370KS',
+	'KRB5IMWOV9CZUPQX',
+	'6FGVLK43191K9IPZ',
+]
+
 async function get_data(ticker) {
 	var url = 'https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY_ADJUSTED&symbol=' + ticker + '&apikey=84W5MVCJ60YFQFI5';
 
 	var response = await fetch(url);
 	var data = await response.json();
 
+	let i = 1;
+	let apikey;
+	while (data['Monthly Adjusted Time Series'] == undefined) {
+		apikey = apikeys[i++];
+		var url = 'https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY_ADJUSTED&symbol=' + ticker + '&apikey=' + apikey;
+
+		response = await fetch(url);
+		data = await response.json();
+	}
+
 	data = data['Monthly Adjusted Time Series'];
 
 	var trimmed = {};
-	let i = 0;
-	for (let [date, value] of Object.entries(data)) {
-		if (i++ == 12) {
-			break;
-		}
+	i = 0;
 
-		trimmed[date] = Number(value['5. adjusted close']);
+	try {
+		for (let [date, value] of Object.entries(data)) {
+			if (i++ == 12) {
+				break;
+			}
+
+			trimmed[date] = Number(value['5. adjusted close']);
+		}
+	} catch (e) {
+		console.log(e);
+		console.log(data);
 	}
 
 	return trimmed;
@@ -44,9 +74,14 @@ async function average(tickers, quantities) {
 		portfolio[date] = 0;
 
 		for (let ticker of tickers) {
+			if (data[ticker][date] == undefined) {
+				data[ticker][date] = data[ticker][dates[i - 1]];
+			}
 			portfolio[date] += data[ticker][date] * quantities[ticker];
 		}
 	}
+
+	console.log(portfolio);
 
 	return portfolio;
 }
@@ -70,6 +105,9 @@ async function draw(tickers, quantities) {
 	}
 
 	prices.reverse();
+	dates.reverse();
+
+	console.log(prices);
 
 	var chart = new Chart(ctx, {
 		type: 'line',
