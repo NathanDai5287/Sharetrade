@@ -12,23 +12,34 @@ apikeys = [
 	'6FGVLK43191K9IPZ',
 ]
 
+function save(ticker, data) {
+	localStorage.setItem(ticker, data);
+}
+
+function load_day(ticker, date) {
+	return localStorage[ticker][date]
+}
+
 async function get_data(ticker) {
-	var url = 'https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY_ADJUSTED&symbol=' + ticker + '&apikey=84W5MVCJ60YFQFI5';
+	if (!(ticker in localStorage)) {
 
-	var response = await fetch(url);
-	var data = await response.json();
+		var url = 'https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY_ADJUSTED&symbol=' + ticker + '&apikey=84W5MVCJ60YFQFI5';
 
-	let i = 1;
-	let apikey;
-	while (data['Monthly Adjusted Time Series'] == undefined) {
-		apikey = apikeys[i++];
-		var url = 'https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY_ADJUSTED&symbol=' + ticker + '&apikey=' + apikey;
+		var response = await fetch(url);
+		var data = await response.json();
 
-		response = await fetch(url);
-		data = await response.json();
-	}
+		let i = 1;
+		let apikey;
+		while (data['Monthly Adjusted Time Series'] == undefined) {
+			apikey = apikeys[i++];
+			var url = 'https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY_ADJUSTED&symbol=' + ticker + '&apikey=' + apikey;
 
-	data = data['Monthly Adjusted Time Series'];
+			response = await fetch(url);
+			data = await response.json();
+		}
+
+		data = data['Monthly Adjusted Time Series'];
+	} else {}
 
 	var trimmed = {};
 	i = 0;
