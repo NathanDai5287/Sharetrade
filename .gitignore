@@ -2,6 +2,7 @@ old/
 delete
 *.delete
 .vscode/
+users/migrations/
 
 # Django #
 *.log

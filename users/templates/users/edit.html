@@ -7,19 +7,19 @@
 				<th>Ticker</th>
 				<th>Quantity</th>
 			</tr>
-
-			<!-- <tr class="stock">
-				<td>
-					<input name="ticker_0" class="ticker" type="text" onkeyup="caps(this)" maxlength="5">
-				</td>
-				<td>
-					<input name="quantity_0" class="quantity" type="number" onkeyup="check(this)" onclick="check(this)">
-				</td>
-				<td>
-					<button class="trash" onclick="trash(this.parentNode)" tabindex="-1">X</button>
-				</td>
-			</tr> -->
-
+			{% for stock in portfolio %}
+				<tr class="stock">
+					<td>
+						<input name="ticker_0" class="ticker" type="text" onkeyup="caps(this)" maxlength="5", value={{stock.symbol}}>
+					</td>
+					<td>
+						<input name="quantity_0" class="quantity" type="number" onkeyup="check(this)" onclick="check(this)", value={{stock.quantity}}>
+					</td>
+					<td>
+						<button class="trash" onclick="trash(this.parentNode)" tabindex="-1">X</button>
+					</td>
+				</tr>
+			{% endfor %}
 		</table>
 		<button class="button submit">Submit</button>
 	</form>
