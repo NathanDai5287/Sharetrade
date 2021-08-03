@@ -15,6 +15,7 @@ def home(request):
 		return render(request, "users/edit.html", {'portfolio': portfolio})
 	else:
 		portfolio = dict()
+		old_portfolio = Stock.objects.filter(user=request.user)
 		for key, value in request.POST.items():
 			if 'ticker' in key:
 				ticker = value
@@ -29,6 +30,9 @@ def home(request):
 					else:
 						stock = Stock(symbol=ticker, quantity=portfolio[ticker], user=request.user)
 						stock.save()
+					old_portfolio = old_portfolio.exclude(symbol=ticker)
+		for old_stock in old_portfolio:
+			old_stock.delete()
 		return render(request, "users/analysis.html", {'portfolio': portfolio})
 
 def register(request):
